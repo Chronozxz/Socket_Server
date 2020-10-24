@@ -1,8 +1,8 @@
 // Server side C/C++ program to demonstrate Socket programming 
 #include <unistd.h> 
 #include <stdio.h> 
-#include <sys/socket.h> 
 #include <stdlib.h> 
+#include <sys/socket.h> 
 #include <netinet/in.h> 
 #include <string.h>
 #include <stdint.h>
@@ -10,14 +10,14 @@
 #define PORT 8080 
 #define DATA_LEN 1024
 
-struct msg
+typedef struct msg
 {
 	uint8_t numSeq;
 	int CRC8;
 	char data[DATA_LEN];
 	uint16_t length;
 	uint8_t tipo;
-};
+}msg;
 
 int getSocket()
 {// Creating socket file descriptor 
@@ -95,7 +95,7 @@ float getValor(char *str, char *e, char *t)
 int main(int argc, char const *argv[]) 
 { 
 	struct sockaddr_in address;
-    int server_fd, new_socket, valread, opt = 1; 
+    int server_fd, new_socket, opt = 1; 
     int addrlen = sizeof(address);
     float error_max = 0.0, nuevo_error, temz_max = 0.0, nuevo_temz;
     unsigned long long numPaquetes;
@@ -147,27 +147,35 @@ int main(int argc, char const *argv[])
 
 		//ir al principio del archivo
 		fseek(archivo, 0, SEEK_SET);
-
+		struct msg paquete;
+		
+		paquete.numSeq = 0;
+		paquete.CRC8 = 0;
+		paquete.tipo = 0;
+		
 		//mientras haya datos del archivo
-		while((valread= fread (buf, 1, DATA_LEN, archivo)) != EOF && !(valread == 0))
+		while((paquete.length = fread (&paquete.data, 1, DATA_LEN, archivo)) != EOF && !(paquete.length == 0))
 		{//enviando los datos de valread
-			nuevo_error = getError();
-			nuevo_temz = getTemporizador();
-			printf("Error %f --",nuevo_error);
-			printf("Temp %f \n",nuevo_temz);
+			//nuevo_error = getError();
+			//nuevo_temz = getTemporizador();
+			//printf("Error %f --",nuevo_error);
+			//printf("Temp %f \n",nuevo_temz);
 			
 			if(nuevo_error <= error_max){
 				//cambiar mensaje
 			}
 			if(nuevo_temz <= temz_max){
-				sleep(nuevo_temz);
+				//sleep(nuevo_temz);
 			}	
-			send(new_socket, buf, valread, 0 ); 
+
+			send(new_socket, &paquete, sizeof(paquete), 0 ); 
 		}
 		
 		//avisar que ya no hay datos para enviar
-		char end[1] = "";
-		send(new_socket, end, 1, 0 );
+		strcpy(paquete.data, "");
+		paquete.length = 0;
+		send(new_socket, &paquete, sizeof(paquete), 0 );
+		
 		
 		printf("Archivo enviado \n");
 	    fclose (archivo);
