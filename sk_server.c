@@ -7,17 +7,17 @@
 #include <string.h>
 #include <stdint.h>
 #include <time.h>
-#define PORT 8080 
+#define PORT 8070 
 #define DATA_LEN 1024
 
-typedef struct msg
+struct msg
 {
 	uint8_t numSeq;
 	int CRC8;
 	char data[DATA_LEN];
 	uint16_t length;
 	uint8_t tipo;
-}msg;
+};
 
 int getSocket()
 {// Creating socket file descriptor 
@@ -152,29 +152,29 @@ int main(int argc, char const *argv[])
 		paquete.numSeq = 0;
 		paquete.CRC8 = 0;
 		paquete.tipo = 0;
-		
 		//mientras haya datos del archivo
 		while((paquete.length = fread (&paquete.data, 1, DATA_LEN, archivo)) != EOF && !(paquete.length == 0))
 		{//enviando los datos de valread
+printf("tipo%d length=%d num%d\n",paquete.tipo,paquete.length,paquete.numSeq);		
 			//nuevo_error = getError();
 			//nuevo_temz = getTemporizador();
 			//printf("Error %f --",nuevo_error);
 			//printf("Temp %f \n",nuevo_temz);
-			
+			/*
 			if(nuevo_error <= error_max){
 				//cambiar mensaje
 			}
 			if(nuevo_temz <= temz_max){
 				//sleep(nuevo_temz);
-			}	
-
-			send(new_socket, &paquete, sizeof(paquete), 0 ); 
+			}*/	
+			paquete.numSeq++;
+			send(new_socket, &paquete.data, paquete.length, 0 ); 
 		}
 		
 		//avisar que ya no hay datos para enviar
 		strcpy(paquete.data, "");
 		paquete.length = 0;
-		send(new_socket, &paquete, sizeof(paquete), 0 );
+		send(new_socket, &paquete.data, 0, 0 );
 		
 		
 		printf("Archivo enviado \n");
